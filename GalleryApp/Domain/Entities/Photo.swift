@@ -4,6 +4,7 @@ struct Photo {
     let id: String
     let description: String?
     let urls: PhotoURLs
+    let isFavorite: Bool
 }
 
 struct PhotoURLs: Codable {
