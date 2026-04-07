@@ -9,7 +9,7 @@ struct PhotoMapper {
         let urls = PhotoURLs(thumb: thumbURL, full: fullURL)
         let photo = Photo(
             id: response.id,
-            title: response.title,
+            title: response.altDescription,
             description: response.description,
             urls: urls,
             isFavorite: isFavorite
