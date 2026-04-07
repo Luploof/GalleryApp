@@ -64,6 +64,7 @@ class GalleryViewModel {
             let processedPhotos = newPhotos.map { photo in
                 return Photo(
                     id: photo.id,
+                    title: photo.title,
                     description: photo.description,
                     urls: photo.urls,
                     isFavorite: favoriteSet.contains(photo.id)
@@ -87,6 +88,7 @@ class GalleryViewModel {
             guard photo.id == photoId else { return photo }
             return Photo(
                 id: photo.id,
+                title: photo.title,
                 description: photo.description,
                 urls: photo.urls,
                 isFavorite: isFavorite
