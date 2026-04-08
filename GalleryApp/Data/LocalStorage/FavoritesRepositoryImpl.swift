@@ -21,7 +21,7 @@ class FavoritesRepositoryImpl: FavoriteRepository {
                     try context.save()
                 }
             } catch {
-                print("Ошибка при проверке существования: \(error)")
+                print("Error: \(error)")
             }
         }
     }
@@ -38,7 +38,7 @@ class FavoritesRepositoryImpl: FavoriteRepository {
                     try context.save()
                 }
             } catch {
-                print("Ошибка при проверке существования: \(error)")
+                print("Error: \(error)")
             }
         }
     }

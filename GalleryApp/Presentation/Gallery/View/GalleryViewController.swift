@@ -54,14 +54,14 @@ class GalleryViewController: UIViewController {
             self?.collectionView.reloadData()
             if let errorMessage = self?.viewModel.errorMessage, !errorMessage.isEmpty {
                 let alert = UIAlertController(
-                    title: "Ошибка",
+                    title: "Error",
                     message: errorMessage,
                     preferredStyle: .alert
                 )
-                alert.addAction(UIAlertAction(title: "Повторить", style: .default) { _ in
+                alert.addAction(UIAlertAction(title: "Repeat", style: .default) { _ in
                     Task { await self?.viewModel.loadMorePhotos() }
                 })
-                alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+                alert.addAction(UIAlertAction(title: "Cancellation", style: .cancel))
                 self?.present(alert, animated: true)
                 self?.viewModel.errorMessage = nil
             }
