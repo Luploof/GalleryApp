@@ -4,10 +4,10 @@ class PhotoCellView: UICollectionViewCell {
     private let imageView = UIImageView()
     private let favoriteButton = UIButton(type: .system)
     
-    private var currentPhotoId: String?
+    private var currentPhoto: Photo?  
     private var downloadTask: Task<Void, Never>?
     
-    var onFavoriteTapped: ((String) -> Void)?
+    var onFavoriteTapped: ((Photo) -> Void)?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -25,8 +25,8 @@ class PhotoCellView: UICollectionViewCell {
     }
     
     @objc private func favoriteTapped() {
-        guard let id = currentPhotoId else { return }
-        onFavoriteTapped?(id)
+        guard let photo = currentPhoto else { return }
+        onFavoriteTapped?(photo)
     }
     
     private func setupViews() {
@@ -53,7 +53,7 @@ class PhotoCellView: UICollectionViewCell {
     }
     
     func configure(photo: Photo) {
-        currentPhotoId = photo.id
+        currentPhoto = photo   // сохраняем весь объект
         let imageName = photo.isFavorite ? "heart.fill" : "heart"
         favoriteButton.setImage(UIImage(systemName: imageName), for: .normal)
         
@@ -69,6 +69,7 @@ class PhotoCellView: UICollectionViewCell {
                     self.imageView.image = image
                 }
             } catch {
+                
             }
         }
     }
@@ -78,6 +79,6 @@ class PhotoCellView: UICollectionViewCell {
         downloadTask?.cancel()
         downloadTask = nil
         imageView.image = nil
-        currentPhotoId = nil
+        currentPhoto = nil
     }
 }

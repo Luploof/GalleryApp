@@ -34,7 +34,7 @@ class DetailViewModel {
     }
     
     func toggleFavorite() {
-        let newStatus  = toggleFavoriteUseCase.execute(photoId: currentPhoto.id)
+        let newStatus  = toggleFavoriteUseCase.execute(photo: currentPhoto)
         let updatedPhoto = Photo(id: currentPhoto.id,
                                  title: currentPhoto.title,
                                  description: currentPhoto.description,

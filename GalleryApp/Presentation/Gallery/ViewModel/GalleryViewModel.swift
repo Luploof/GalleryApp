@@ -98,9 +98,9 @@ class GalleryViewModel {
         onStateChanged?()
     }
     
-    func toggleFavorite(photoId: String) {
-        let newStatus = toggleFavoriteUseCase.execute(photoId: photoId)
-        updateFavoriteStatus(photoId: photoId, isFavorite: newStatus)
-        NotificationCenter.default.post(name: .favoriteChanged, object: nil, userInfo: ["photoId": photoId, "isFavorite": newStatus])
+    func toggleFavorite(photo: Photo) {
+        let newStatus = toggleFavoriteUseCase.execute(photo: photo)
+        updateFavoriteStatus(photoId: photo.id, isFavorite: newStatus)
+        NotificationCenter.default.post(name: .favoriteChanged, object: nil, userInfo: ["photoId": photo.id, "isFavorite": newStatus])
     }
 }

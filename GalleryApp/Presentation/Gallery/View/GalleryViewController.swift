@@ -82,8 +82,8 @@ extension GalleryViewController: UICollectionViewDataSource, UICollectionViewDel
         let photo = viewModel.photos[indexPath.item]
         cell.configure(photo: photo)
         
-        cell.onFavoriteTapped = { [weak self] photoId in
-            self?.viewModel.toggleFavorite(photoId: photoId)
+        cell.onFavoriteTapped = { [weak self] photo in
+            self?.viewModel.toggleFavorite(photo: photo)
         }
         return cell
     }

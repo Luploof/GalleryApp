@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="FavoritePhoto" representedClassName="FavoritePhoto" syncable="YES" codeGenerationType="class">
+    <entity name="FavoritePhoto" representedClassName="FavoritePhoto" syncable="YES">
+        <attribute name="descriptionPhoto" optional="YES" attributeType="String"/>
+        <attribute name="full" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
+        <attribute name="thumb" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
     </entity>
 </model>

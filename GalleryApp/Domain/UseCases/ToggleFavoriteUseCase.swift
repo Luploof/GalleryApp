@@ -1,7 +1,7 @@
 import Foundation
 
 protocol ToggleFavoriteUseCase {
-    func execute(photoId: String) -> Bool
+    func execute(photo: Photo) -> Bool
 }
 
 class ToggleFavoriteUseCaseImpl: ToggleFavoriteUseCase {
@@ -11,12 +11,12 @@ class ToggleFavoriteUseCaseImpl: ToggleFavoriteUseCase {
         self.repository = repository
     }
     
-    func execute(photoId: String) -> Bool {
-        if repository.isFavorite(photoId: photoId) {
-            repository.remove(photoId: photoId)
+    func execute(photo: Photo) -> Bool {
+        if repository.isFavorite(photoId: photo.id) {
+            repository.remove(photoId: photo.id)
             return false
         } else {
-            repository.add(photoId: photoId)
+            repository.add(photo: photo)
             return true
         }
     }
