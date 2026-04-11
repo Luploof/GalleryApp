@@ -1,7 +1,7 @@
 import Foundation
 
 class DetailViewModel {
-    private let allPhotos: [Photo]
+    private var allPhotos: [Photo]
     private let toggleFavoriteUseCase: ToggleFavoriteUseCase
     private var currentIndex: Int
     private var currentPhoto: Photo
@@ -26,7 +26,7 @@ class DetailViewModel {
     }
     
     func previous() {
-        if currentIndex - 1 > 0 {
+        if currentIndex - 1 >= 0 {
             currentIndex -= 1
             currentPhoto = allPhotos[currentIndex]
             onPhotoChanged?(currentPhoto)
@@ -42,6 +42,9 @@ class DetailViewModel {
                                  isFavorite: newStatus)
         currentPhoto = updatedPhoto
         onPhotoChanged?(currentPhoto)
+        if let index = allPhotos.firstIndex(where: { $0.id == currentPhoto.id }) {
+            allPhotos[index] = updatedPhoto
+        }
         NotificationCenter.default.post(name: .favoriteChanged, object: nil, userInfo: ["photoId": currentPhoto.id, "isFavorite": updatedPhoto.isFavorite])
         
     }
