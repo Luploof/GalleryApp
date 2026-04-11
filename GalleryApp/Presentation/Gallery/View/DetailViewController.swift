@@ -27,6 +27,11 @@ class DetailViewController: UIViewController {
         updateUI(with: viewModel.photo)
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        imageLoadTask?.cancel()
+    }
+    
     private func setupUI() {
         view.backgroundColor = .systemBackground
         

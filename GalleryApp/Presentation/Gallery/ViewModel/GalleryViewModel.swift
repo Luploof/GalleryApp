@@ -4,15 +4,13 @@ extension Notification.Name {
     static let favoriteChanged = Notification.Name("favoriteChanged")
 }
 
-import Foundation
-
 @MainActor
 class GalleryViewModel {
     private let fetchPhotosUseCase: FetchPhotosUseCase
     private let getFavoritesUseCase: GetFavoritesUseCase
     private let toggleFavoriteUseCase: ToggleFavoriteUseCase
     
-    private(set) var photos: [Photo] = []
+    var photos: [Photo] = []
     var onStateChanged: (() -> Void)?
     var isLoading: Bool = false
     var errorMessage: String? = nil

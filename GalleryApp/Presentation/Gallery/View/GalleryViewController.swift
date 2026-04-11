@@ -2,11 +2,10 @@ import UIKit
 
 @MainActor
 class GalleryViewController: UIViewController {
-    
-
     private let collectionView: UICollectionView
     private let viewModel: GalleryViewModel
     private let layout = UICollectionViewFlowLayout()
+    private let activityIndicator = UIActivityIndicatorView(style: .medium)
     
     var onPhotoSelected: ((Photo, [Photo]) -> Void)?
     
@@ -45,6 +44,9 @@ class GalleryViewController: UIViewController {
         ])
         
         collectionView.register(PhotoCellView.self, forCellWithReuseIdentifier: "PhotoCellView")
+        collectionView.register(UICollectionReusableView.self,
+                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+                                withReuseIdentifier: "Footer")
         collectionView.dataSource = self
         collectionView.delegate = self
     }
@@ -69,7 +71,7 @@ class GalleryViewController: UIViewController {
     }
 }
 
-extension GalleryViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+extension GalleryViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return viewModel.photos.count
     }
@@ -92,6 +94,40 @@ extension GalleryViewController: UICollectionViewDataSource, UICollectionViewDel
         let photo = viewModel.photos[indexPath.item]
         onPhotoSelected?(photo, viewModel.photos)
     }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                            viewForSupplementaryElementOfKind kind: String,
+                            at indexPath: IndexPath) -> UICollectionReusableView {
+            if kind == UICollectionView.elementKindSectionFooter {
+                let footer = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: "Footer",
+                    for: indexPath
+                )
+                footer.subviews.forEach { $0.removeFromSuperview() }
+                
+                activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+                footer.addSubview(activityIndicator)
+                NSLayoutConstraint.activate([
+                    activityIndicator.centerXAnchor.constraint(equalTo: footer.centerXAnchor),
+                    activityIndicator.centerYAnchor.constraint(equalTo: footer.centerYAnchor)
+                ])
+                
+                if viewModel.isLoading {
+                    activityIndicator.startAnimating()
+                } else {
+                    activityIndicator.stopAnimating()
+                }
+                return footer
+            }
+            return UICollectionReusableView()
+        }
+        
+        func collectionView(_ collectionView: UICollectionView,
+                            layout collectionViewLayout: UICollectionViewLayout,
+                            referenceSizeForFooterInSection section: Int) -> CGSize {
+            return viewModel.isLoading ? CGSize(width: collectionView.bounds.width, height: 50) : .zero
+        }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let offsetY = scrollView.contentOffset.y
