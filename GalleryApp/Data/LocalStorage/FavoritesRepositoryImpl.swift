@@ -9,8 +9,7 @@ class FavoritesRepositoryImpl: FavoriteRepository {
     }
     
     func add(photo: Photo) {
-        let context = container.newBackgroundContext()
-        context.performAndWait {
+        container.performBackgroundTask { context in
             let fetchRequest: NSFetchRequest<FavoritePhoto> = FavoritePhoto.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id == %@", photo.id)
             do {
@@ -27,12 +26,13 @@ class FavoritesRepositoryImpl: FavoriteRepository {
             } catch {
                 print("Error: \(error)")
             }
+            
         }
+        
     }
     
     func remove(photoId: String) {
-        let context = container.newBackgroundContext()
-        context.performAndWait {
+        container.performBackgroundTask { context in
             let fetchRequest: NSFetchRequest<FavoritePhoto> = FavoritePhoto.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id == %@", photoId)
             do {
