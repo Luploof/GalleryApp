@@ -8,7 +8,7 @@ class DetailViewController: UIViewController {
     private let descriptionLabel = UILabel()
     private let titleLabel = UILabel()
     private let favoriteButton = UIButton(type: .system)
-    private var imageLoadTask: Task<Void, Never>?
+    private let activityIndicator = UIActivityIndicatorView(style: .medium)
     
     init(viewModel: DetailViewModel) {
         self.viewModel = viewModel
@@ -25,11 +25,7 @@ class DetailViewController: UIViewController {
         setupGestures()
         bindViewModel()
         updateUI(with: viewModel.photo)
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        imageLoadTask?.cancel()
+        Task { await viewModel.loadImageForCurrentPhoto() }
     }
     
     private func setupUI() {
@@ -48,19 +44,23 @@ class DetailViewController: UIViewController {
         favoriteButton.tintColor = .systemRed
         favoriteButton.addTarget(self, action: #selector(favoriteTapped), for: .touchUpInside)
         
+        activityIndicator.hidesWhenStopped = true
+        
         view.addSubview(imageView)
         view.addSubview(descriptionLabel)
         view.addSubview(titleLabel)
         view.addSubview(favoriteButton)
+        view.addSubview(activityIndicator)
         
         setupConstraints()
     }
     
     private func setupConstraints() {
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false 
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         favoriteButton.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             favoriteButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
@@ -79,10 +79,12 @@ class DetailViewController: UIViewController {
             
             descriptionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             descriptionLabel.centerYAnchor.constraint(equalTo: favoriteButton.centerYAnchor),
-            descriptionLabel.trailingAnchor.constraint(equalTo: favoriteButton.leadingAnchor, constant: -12)
+            descriptionLabel.trailingAnchor.constraint(equalTo: favoriteButton.leadingAnchor, constant: -12),
+            
+            activityIndicator.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: imageView.centerYAnchor)
         ])
     }
-
     
     private func setupGestures() {
         let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe(_:)))
@@ -97,6 +99,12 @@ class DetailViewController: UIViewController {
     private func bindViewModel() {
         viewModel.onPhotoChanged = { [weak self] photo in
             self?.updateUI(with: photo)
+            Task { await self?.viewModel.loadImageForCurrentPhoto() }
+        }
+        
+        viewModel.onImageLoaded = { [weak self] image in
+            self?.activityIndicator.stopAnimating()
+            self?.imageView.image = image
         }
     }
     
@@ -119,22 +127,7 @@ class DetailViewController: UIViewController {
         let iconName = photo.isFavorite ? "heart.fill" : "heart"
         favoriteButton.setImage(UIImage(systemName: iconName), for: .normal)
         
-        imageLoadTask?.cancel()
         imageView.image = nil
-        
-        imageLoadTask = Task {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: photo.urls.full)
-                if !Task.isCancelled {
-                    if let image = UIImage(data: data) {
-                        self.imageView.image = image
-                    }
-                }
-            } catch {
-                if !(error is CancellationError) {
-                    print(error.localizedDescription)
-                }
-            }
-        }
+        activityIndicator.startAnimating()
     }
 }

@@ -35,6 +35,7 @@ class FavoritesViewModel {
     func removeFromFavorites(photoId: String) {
         if let foundPhoto = favoritePhotos.first(where: { $0.id == photoId }) {
             toggleFavoriteUseCase.execute(photo: foundPhoto)
+            loadFavorites()
         }
     }
     
