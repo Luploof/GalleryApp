@@ -13,7 +13,7 @@ class GalleryViewModel {
     var photos: [Photo] = []
     var onStateChanged: (() -> Void)?
     var isLoading: Bool = false
-    var errorMessage: String? = nil
+    var error: NetworkError? = nil
     
     private var currentPage: Int = 1
     private var canLoadMore: Bool = true
@@ -84,8 +84,12 @@ class GalleryViewModel {
             self.photos.append(contentsOf: processedPhotos)
             self.currentPage += 1
             self.canLoadMore = newPhotos.count == 30
+            self.error = nil
+            
+        } catch let error as NetworkError {
+            self.error = error
         } catch {
-            self.errorMessage = error.localizedDescription
+            self.error = .unknown(underlyingError: error)
         }
     }
     

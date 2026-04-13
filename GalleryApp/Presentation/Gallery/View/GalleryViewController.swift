@@ -24,7 +24,7 @@ class GalleryViewController: UIViewController {
     }
     
     required init?(coder: NSCoder) {
-        fatalError()
+        fatalError("init(coder:) has not been implemented")
     }
     
     override func viewDidLoad() {
@@ -32,7 +32,6 @@ class GalleryViewController: UIViewController {
         setupUI()
         bindViewModel()
     }
-    
     
     private func setupUI() {
         view.addSubview(collectionView)
@@ -55,20 +54,20 @@ class GalleryViewController: UIViewController {
     private func bindViewModel() {
         viewModel.onStateChanged = { [weak self] in
             self?.collectionView.reloadData()
-            if let errorMessage = self?.viewModel.errorMessage, !errorMessage.isEmpty {
-                let alert = UIAlertController(
-                    title: "Error",
-                    message: errorMessage,
-                    preferredStyle: .alert
-                )
-                alert.addAction(UIAlertAction(title: "Repeat", style: .default) { _ in
+            
+            if let error = self?.viewModel.error, self?.viewModel.photos.isEmpty == true {
+                self?.showErrorAlert(message: error.localizedDescription) {
                     Task { await self?.viewModel.loadMorePhotos() }
-                })
-                alert.addAction(UIAlertAction(title: "Cancellation", style: .cancel))
-                self?.present(alert, animated: true)
-                self?.viewModel.errorMessage = nil
+                }
             }
         }
+    }
+    
+    private func showErrorAlert(message: String, retryAction: @escaping () -> Void) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Repeat", style: .default) { _ in retryAction() })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(alert, animated: true)
     }
 }
 
@@ -99,38 +98,38 @@ extension GalleryViewController: UICollectionViewDataSource, UICollectionViewDel
     }
     
     func collectionView(_ collectionView: UICollectionView,
-                            viewForSupplementaryElementOfKind kind: String,
-                            at indexPath: IndexPath) -> UICollectionReusableView {
-            if kind == UICollectionView.elementKindSectionFooter {
-                let footer = collectionView.dequeueReusableSupplementaryView(
-                    ofKind: kind,
-                    withReuseIdentifier: "Footer",
-                    for: indexPath
-                )
-                footer.subviews.forEach { $0.removeFromSuperview() }
-                
-                activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-                footer.addSubview(activityIndicator)
-                NSLayoutConstraint.activate([
-                    activityIndicator.centerXAnchor.constraint(equalTo: footer.centerXAnchor),
-                    activityIndicator.centerYAnchor.constraint(equalTo: footer.centerYAnchor)
-                ])
-                
-                if viewModel.isLoading {
-                    activityIndicator.startAnimating()
-                } else {
-                    activityIndicator.stopAnimating()
-                }
-                return footer
+                        viewForSupplementaryElementOfKind kind: String,
+                        at indexPath: IndexPath) -> UICollectionReusableView {
+        if kind == UICollectionView.elementKindSectionFooter {
+            let footer = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: "Footer",
+                for: indexPath
+            )
+            footer.subviews.forEach { $0.removeFromSuperview() }
+            
+            activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+            footer.addSubview(activityIndicator)
+            NSLayoutConstraint.activate([
+                activityIndicator.centerXAnchor.constraint(equalTo: footer.centerXAnchor),
+                activityIndicator.centerYAnchor.constraint(equalTo: footer.centerYAnchor)
+            ])
+            
+            if viewModel.isLoading {
+                activityIndicator.startAnimating()
+            } else {
+                activityIndicator.stopAnimating()
             }
-            return UICollectionReusableView()
+            return footer
         }
-        
-        func collectionView(_ collectionView: UICollectionView,
-                            layout collectionViewLayout: UICollectionViewLayout,
-                            referenceSizeForFooterInSection section: Int) -> CGSize {
-            return viewModel.isLoading ? CGSize(width: collectionView.bounds.width, height: 50) : .zero
-        }
+        return UICollectionReusableView()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        referenceSizeForFooterInSection section: Int) -> CGSize {
+        return viewModel.isLoading ? CGSize(width: collectionView.bounds.width, height: 50) : .zero
+    }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let offsetY = scrollView.contentOffset.y

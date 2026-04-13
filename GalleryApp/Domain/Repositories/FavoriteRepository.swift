@@ -1,10 +1,9 @@
 import Foundation
 
-protocol FavoriteRepository: AnyObject {
-    func add(photo: Photo)
-    func remove(photoId: String)
+protocol FavoriteRepository {
+    func add(photo: Photo) throws
+    func remove(photoId: String) throws
     func isFavorite(photoId: String) -> Bool
     func getAllFavorites() -> [String]
     func getAllFavoritePhotos() -> [Photo]
 }
-

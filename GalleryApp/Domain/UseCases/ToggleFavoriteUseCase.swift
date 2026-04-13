@@ -13,10 +13,16 @@ class ToggleFavoriteUseCaseImpl: ToggleFavoriteUseCase {
     
     func execute(photo: Photo) -> Bool {
         let isFav = repository.isFavorite(photoId: photo.id)
-        if isFav {
-            repository.remove(photoId: photo.id)
-        } else {
-            repository.add(photo: photo)
+        
+        do {
+            if isFav {
+                try repository.remove(photoId: photo.id)
+            } else {
+                try repository.add(photo: photo)
+            }
+        } catch {
+            print("Failed to save to Core Data: \(error)")
+            return isFav
         }
         
         Task {
@@ -29,8 +35,7 @@ class ToggleFavoriteUseCaseImpl: ToggleFavoriteUseCase {
                 )
             }
         }
+        
         return !isFav
     }
-    
-
 }

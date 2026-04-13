@@ -8,64 +8,67 @@ class FavoritesRepositoryImpl: FavoriteRepository {
         self.container = container
     }
     
-    func add(photo: Photo) {
-        container.performBackgroundTask { context in
+    func add(photo: Photo) throws {
+        try container.viewContext.performAndWait {
             let fetchRequest: NSFetchRequest<FavoritePhoto> = FavoritePhoto.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id == %@", photo.id)
+            
             do {
-                let existing = try context.fetch(fetchRequest)
+                let existing = try container.viewContext.fetch(fetchRequest)
                 if existing.isEmpty {
-                    let newFavorite = FavoritePhoto(context: context)
+                    let newFavorite = FavoritePhoto(context: container.viewContext)
                     newFavorite.id = photo.id
                     newFavorite.title = photo.title
                     newFavorite.descriptionPhoto = photo.description
                     newFavorite.full = photo.urls.full.absoluteString
                     newFavorite.thumb = photo.urls.thumb.absoluteString
-                    try context.save()
+                    try container.viewContext.save()
+                } else {
+                    throw DatabaseError.alreadyExists
                 }
             } catch {
-                print("Error: \(error)")
+                throw  DatabaseError.saveFailed(underlyingError: error)
             }
+        }
+    }
+    
+    func remove(photoId: String) throws {        
+        try container.viewContext.performAndWait {
+            let fetchRequest: NSFetchRequest<FavoritePhoto> = FavoritePhoto.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %@", photoId)
             
+            do {
+                let existing = try container.viewContext.fetch(fetchRequest)
+                if let object = existing.first {
+                    container.viewContext.delete(object)
+                    try container.viewContext.save()
+                } else {
+                   throw DatabaseError.notFound
+                }
+            } catch {
+                throw DatabaseError.deleteFailed(underlyingError: error)
+            }
         }
         
     }
     
-    func remove(photoId: String) {
-        container.performBackgroundTask { context in
-            let fetchRequest: NSFetchRequest<FavoritePhoto> = FavoritePhoto.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "id == %@", photoId)
-            do {
-                let existing = try context.fetch(fetchRequest)
-                if let object = existing.first {
-                    context.delete(object)
-                    try context.save()
-                }
-            } catch {
-                print("Error: \(error)")
-            }
-        }
-    }
-    
     func isFavorite(photoId: String) -> Bool {
-        let context = container.viewContext
         let fetchRequest: NSFetchRequest<FavoritePhoto> = FavoritePhoto.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", photoId)
-        return (try? context.count(for: fetchRequest)) ?? 0 > 0
+        return (try? container.viewContext.count(for: fetchRequest)) ?? 0 > 0
     }
     
     func getAllFavorites() -> [String] {
-        let context = container.viewContext
         let fetchRequest: NSFetchRequest<FavoritePhoto> = FavoritePhoto.fetchRequest()
         fetchRequest.propertiesToFetch = ["id"]
-        return (try? context.fetch(fetchRequest).map { $0.id }) ?? []
+        return (try? container.viewContext.fetch(fetchRequest).map { $0.id }) ?? []
     }
     
     func getAllFavoritePhotos() -> [Photo] {
-        let context = container.viewContext
         let fetchRequest: NSFetchRequest<FavoritePhoto> = FavoritePhoto.fetchRequest()
+        
         do {
-            let items = try context.fetch(fetchRequest)
+            let items = try container.viewContext.fetch(fetchRequest)
             let photos = items.compactMap { item -> Photo? in
                 guard let thumbURL = URL(string: item.thumb),
                       let fullURL = URL(string: item.full) else {
@@ -83,7 +86,7 @@ class FavoritesRepositoryImpl: FavoriteRepository {
             }
             return photos
         } catch {
-            print("Error: \(error)")
+            print("Database error in getAllFavoritePhotos: \(error)")
             return []
         }
     }

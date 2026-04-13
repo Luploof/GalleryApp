@@ -19,7 +19,7 @@ class FavoritesViewController: UIViewController {
     }
     
     required init?(coder: NSCoder) {
-        fatalError()
+        fatalError("init(coder:) has not been implemented")
     }
     
     override func viewDidLoad() {

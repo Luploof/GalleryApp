@@ -7,7 +7,7 @@ class PhotoCellViewModel {
     
     private(set) var image: UIImage?
     private(set) var isLoading = false
-    private(set) var error: Error?
+    private(set) var error: ImageLoadingError?
     
     var onStateChanged: (() -> Void)?
     
@@ -41,8 +41,12 @@ class PhotoCellViewModel {
                 self.image = image
                 self.isLoading = false
                 self.onStateChanged?()
-            } catch {
+            } catch let error as ImageLoadingError {
                 self.error = error
+                self.isLoading = false
+                self.onStateChanged?()
+            } catch {
+                self.error = .downloadFailed(url: self.thumbURL, underlyingError: error)
                 self.isLoading = false
                 self.onStateChanged?()
             }

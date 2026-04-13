@@ -22,54 +22,61 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let persistentContainer = appDelegate.persistentContainer
         
         let favoriteRepository = FavoritesRepositoryImpl(container: persistentContainer)
-        let apiClient: APIClientProtocol = APIClient()
-        let photoRepository = PhotoRepositoryImpl(apiClient: apiClient, favoriteRepository: favoriteRepository)
         
-        let fetchPhotosUseCase = FetchPhotosUseCaseImpl(repository: photoRepository)
-        let getFavoritesUseCase = GetFavoritesUseCaseImpl(repository: favoriteRepository)
-        let toggleFavoriteUseCase = ToggleFavoriteUseCaseImpl(repository: favoriteRepository)
-        
-        let galleryViewModel = GalleryViewModel(
-            fetchPhotosUseCase: fetchPhotosUseCase,
-            getFavoritesUseCase: getFavoritesUseCase,
-            toggleFavoriteUseCase: toggleFavoriteUseCase
-        )
-        
-        let galleryViewController = GalleryViewController(viewModel: galleryViewModel)
-        
-        galleryViewController.onPhotoSelected = { photo, allPhotos in
-            let detailViewModel = DetailViewModel(
-                photo: photo,
-                allPhotos: allPhotos,
+        do {
+            let apiClient: APIClientProtocol = try APIClient()
+            let photoRepository = PhotoRepositoryImpl(apiClient: apiClient, favoriteRepository: favoriteRepository)
+            
+            let fetchPhotosUseCase = FetchPhotosUseCaseImpl(repository: photoRepository)
+            let getFavoritesUseCase = GetFavoritesUseCaseImpl(repository: favoriteRepository)
+            let toggleFavoriteUseCase = ToggleFavoriteUseCaseImpl(repository: favoriteRepository)
+            
+            let galleryViewModel = GalleryViewModel(
+                fetchPhotosUseCase: fetchPhotosUseCase,
+                getFavoritesUseCase: getFavoritesUseCase,
                 toggleFavoriteUseCase: toggleFavoriteUseCase
             )
-            let detailViewController = DetailViewController(viewModel: detailViewModel)
-            galleryViewController.navigationController?.pushViewController(detailViewController, animated: true)
+            
+            let galleryViewController = GalleryViewController(viewModel: galleryViewModel)
+            
+            galleryViewController.onPhotoSelected = { photo, allPhotos in
+                let detailViewModel = DetailViewModel(
+                    photo: photo,
+                    allPhotos: allPhotos,
+                    toggleFavoriteUseCase: toggleFavoriteUseCase
+                )
+                let detailViewController = DetailViewController(viewModel: detailViewModel)
+                galleryViewController.navigationController?.pushViewController(detailViewController, animated: true)
+            }
+            
+            let favoriteViewModel = FavoritesViewModel(favoriteRepository: favoriteRepository, toggleFavoriteUseCase: toggleFavoriteUseCase)
+            let favoriteViewController = FavoritesViewController(viewModel: favoriteViewModel)
+            
+            favoriteViewController.onPhotoSelected = { photo, allPhotos in
+                let detailViewModel = DetailViewModel(
+                    photo: photo,
+                    allPhotos: allPhotos,
+                    toggleFavoriteUseCase: toggleFavoriteUseCase
+                )
+                let detailViewController = DetailViewController(viewModel: detailViewModel)
+                favoriteViewController.navigationController?.pushViewController(detailViewController, animated: true)
+            }
+            
+            let galleryNav = UINavigationController(rootViewController: galleryViewController)
+            let favoritesNav = UINavigationController(rootViewController: favoriteViewController)
+            
+            galleryNav.tabBarItem.image = UIImage(systemName: "photo")
+            favoritesNav.tabBarItem.image = UIImage(systemName: "heart")
+            
+            let tabBarController = UITabBarController()
+            tabBarController.viewControllers = [galleryNav, favoritesNav]
+            
+            window?.rootViewController = tabBarController
+            window?.makeKeyAndVisible()
+            
+        } catch let error {
+            fatalError("Network error: \(error.localizedDescription)")
         }
-        let favoriteViewModel = FavoritesViewModel(favoriteRepository: favoriteRepository, toggleFavoriteUseCase: toggleFavoriteUseCase)
-        let favoriteViewController = FavoritesViewController(viewModel: favoriteViewModel)
-        
-        favoriteViewController.onPhotoSelected = { photo, allPhotos in
-            let detailViewModel = DetailViewModel(
-                photo: photo,
-                allPhotos: allPhotos,
-                toggleFavoriteUseCase: toggleFavoriteUseCase
-            )
-            let detailViewController = DetailViewController(viewModel: detailViewModel)
-            favoriteViewController.navigationController?.pushViewController(detailViewController, animated: true)
-        }
-        
-        let galleryNav = UINavigationController(rootViewController: galleryViewController)
-        let favoritesNav = UINavigationController(rootViewController: favoriteViewController)
-       
-        galleryNav.tabBarItem.image = UIImage(systemName: "photo")
-        favoritesNav.tabBarItem.image = UIImage(systemName: "heart")
-        
-        let tabBarController = UITabBarController()
-        tabBarController.viewControllers = [galleryNav, favoritesNav]
-
-        window?.rootViewController = tabBarController
-        window?.makeKeyAndVisible()
     }
     
     
