@@ -33,6 +33,7 @@ class GalleryViewController: UIViewController {
         bindViewModel()
     }
     
+    
     private func setupUI() {
         view.addSubview(collectionView)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -82,11 +83,13 @@ extension GalleryViewController: UICollectionViewDataSource, UICollectionViewDel
         }
         
         let photo = viewModel.photos[indexPath.item]
-        cell.configure(photo: photo)
+        let cellViewModel = PhotoCellViewModel(photo: photo)
+        cell.configure(with: cellViewModel)
         
         cell.onFavoriteTapped = { [weak self] photo in
             self?.viewModel.toggleFavorite(photo: photo)
         }
+        
         return cell
     }
     

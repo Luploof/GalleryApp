@@ -3,9 +3,9 @@ import UIKit
 class PhotoCellView: UICollectionViewCell {
     private let imageView = UIImageView()
     private let favoriteButton = UIButton(type: .system)
+    private let activityIndicator = UIActivityIndicatorView(style: .medium)
     
-    private var currentPhoto: Photo?  
-    private var downloadTask: Task<Void, Never>?
+    private var viewModel: PhotoCellViewModel?
     
     var onFavoriteTapped: ((Photo) -> Void)?
     
@@ -18,6 +18,7 @@ class PhotoCellView: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.backgroundColor = .systemGray6
+        activityIndicator.hidesWhenStopped = true
     }
     
     required init?(coder: NSCoder) {
@@ -25,19 +26,28 @@ class PhotoCellView: UICollectionViewCell {
     }
     
     @objc private func favoriteTapped() {
-        guard let photo = currentPhoto else { return }
+        guard let viewModel = viewModel else { return }
+        let photo = Photo(
+            id: viewModel.photoId,
+            title: nil,
+            description: nil,
+            urls: PhotoURLs(thumb: viewModel.thumbURL, full: viewModel.thumbURL),
+            isFavorite: viewModel.isFavorite
+        )
         onFavoriteTapped?(photo)
     }
     
     private func setupViews() {
         contentView.addSubview(imageView)
         contentView.addSubview(favoriteButton)
+        contentView.addSubview(activityIndicator)
         favoriteButton.addTarget(self, action: #selector(favoriteTapped), for: .touchUpInside)
     }
     
     private func setupConstraints() {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         favoriteButton.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -48,37 +58,56 @@ class PhotoCellView: UICollectionViewCell {
             favoriteButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             favoriteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             favoriteButton.widthAnchor.constraint(equalToConstant: 30),
-            favoriteButton.heightAnchor.constraint(equalToConstant: 30)
+            favoriteButton.heightAnchor.constraint(equalToConstant: 30),
+            
+            activityIndicator.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: imageView.centerYAnchor)
         ])
     }
     
-    func configure(photo: Photo) {
-        currentPhoto = photo   // сохраняем весь объект
-        let imageName = photo.isFavorite ? "heart.fill" : "heart"
+    func configure(with viewModel: PhotoCellViewModel) {
+        self.viewModel = viewModel
+        
+        let imageName = viewModel.isFavorite ? "heart.fill" : "heart"
         favoriteButton.setImage(UIImage(systemName: imageName), for: .normal)
         
-        downloadTask?.cancel()
-        imageView.image = nil
+        if let image = viewModel.image {
+            imageView.image = image
+            activityIndicator.stopAnimating()
+        } else if viewModel.isLoading {
+            imageView.image = nil
+            activityIndicator.startAnimating()
+        } else {
+            imageView.image = nil
+            activityIndicator.startAnimating()
+            viewModel.loadImage()
+        }
         
-        downloadTask = Task {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: photo.urls.thumb)
-                try Task.checkCancellation()
-                
-                if let image = UIImage(data: data) {
-                    self.imageView.image = image
-                }
-            } catch {
-                
-            }
+        viewModel.onStateChanged = { [weak self] in
+            self?.updateUI()
+        }
+    }
+    
+    private func updateUI() {
+        guard let viewModel = viewModel else { return }
+        
+        let imageName = viewModel.isFavorite ? "heart.fill" : "heart"
+        favoriteButton.setImage(UIImage(systemName: imageName), for: .normal)
+        
+        if let image = viewModel.image {
+            imageView.image = image
+            activityIndicator.stopAnimating()
+        } else if viewModel.isLoading {
+            activityIndicator.startAnimating()
+        } else {
+            activityIndicator.stopAnimating()
         }
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        downloadTask?.cancel()
-        downloadTask = nil
+        viewModel = nil
         imageView.image = nil
-        currentPhoto = nil
+        activityIndicator.stopAnimating()
     }
 }

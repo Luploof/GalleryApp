@@ -61,7 +61,9 @@ extension FavoritesViewController: UICollectionViewDataSource, UICollectionViewD
         }
         
         let photo = viewModel.favoritePhotos[indexPath.item]
-        cell.configure(photo: photo)
+        let cellViewModel = PhotoCellViewModel(photo: photo)
+        cell.configure(with: cellViewModel)
+        
         cell.onFavoriteTapped = { [weak self] photo in
             self?.viewModel.removeFromFavorites(photoId: photo.id)
         }
