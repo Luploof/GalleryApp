@@ -12,12 +12,25 @@ class ToggleFavoriteUseCaseImpl: ToggleFavoriteUseCase {
     }
     
     func execute(photo: Photo) -> Bool {
-        if repository.isFavorite(photoId: photo.id) {
+        let isFav = repository.isFavorite(photoId: photo.id)
+        if isFav {
             repository.remove(photoId: photo.id)
-            return false
         } else {
             repository.add(photo: photo)
-            return true
         }
+        
+        Task {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            await MainActor.run {
+                NotificationCenter.default.post(
+                    name: .favoriteChanged,
+                    object: nil,
+                    userInfo: ["photoId": photo.id, "isFavorite": !isFav]
+                )
+            }
+        }
+        return !isFav
     }
+    
+
 }
