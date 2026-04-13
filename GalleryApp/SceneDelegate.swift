@@ -16,11 +16,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
         
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            fatalError("AppDelegate is not of type AppDelegate")
+        }
         let persistentContainer = appDelegate.persistentContainer
         
         let favoriteRepository = FavoritesRepositoryImpl(container: persistentContainer)
-        let apiClient = APIClient()
+        let apiClient: APIClientProtocol = APIClient()
         let photoRepository = PhotoRepositoryImpl(apiClient: apiClient, favoriteRepository: favoriteRepository)
         
         let fetchPhotosUseCase = FetchPhotosUseCaseImpl(repository: photoRepository)

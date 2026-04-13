@@ -1,10 +1,10 @@
 import Foundation
 
 class PhotoRepositoryImpl: FetchPhotoRepository {
-    private let apiClient: APIClient
+    private let apiClient: APIClientProtocol
     private let favoriteRepository: FavoriteRepository
     
-    init(apiClient: APIClient, favoriteRepository: FavoriteRepository) {
+    init(apiClient: APIClientProtocol, favoriteRepository: FavoriteRepository) {
         self.apiClient = apiClient
         self.favoriteRepository = favoriteRepository
     }
