@@ -1,6 +1,6 @@
 import Foundation
 
-class APIClient {
+class APIClient: APIClientProtocol {
     let baseURL = "https://api.unsplash.com"
     let apiKey: String
     
