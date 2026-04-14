@@ -47,7 +47,6 @@ Users can view a gallery, mark photos as favorites, remove them from favorites, 
 ![Favorites](Screenshots/3.jpeg)
 
 ### Video Demo
-<video src="https://raw.githubusercontent.com/Luploof/GalleryApp/main/Screenshots/video.MP4" controls width="400">
 If the video does not play, [download it directly](https://raw.githubusercontent.com/Luploof/GalleryApp/main/Screenshots/video.MP4).
 
 ## Configuration
