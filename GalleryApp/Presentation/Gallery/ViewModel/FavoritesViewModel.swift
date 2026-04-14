@@ -20,7 +20,6 @@ class FavoritesViewModel {
         loadFavorites()
     }
     
-    
     deinit {
         if let observer = notificationObserver {
             NotificationCenter.default.removeObserver(observer)

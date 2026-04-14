@@ -13,7 +13,7 @@ class GalleryViewModel {
     var photos: [Photo] = []
     var onStateChanged: (() -> Void)?
     var isLoading: Bool = false
-    var error: NetworkError? = nil
+    var error: NetworkError?
     
     private var currentPage: Int = 1
     private var canLoadMore: Bool = true
